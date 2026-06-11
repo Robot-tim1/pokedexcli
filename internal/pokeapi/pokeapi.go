@@ -21,27 +21,28 @@ var pokeClient = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
-func FetchMap(url string) (CurrentMap, error) {
+func FetchData[T any](url string) (T, error) {
+	var resultData T
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return CurrentMap{}, fmt.Errorf("error creating request: %w", err)
+		return resultData, fmt.Errorf("error creating request: %w", err)
 	}
 	req.Header.Set("user-agent", "pokedexcli for boot.dev course")
 
 	resp, err := pokeClient.Do(req)
 	if err != nil {
-		return CurrentMap{}, fmt.Errorf("error fetching data: %w", err)
+		return resultData, fmt.Errorf("error fetching data: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 {
-		return CurrentMap{}, fmt.Errorf("returned status code: %d", resp.StatusCode)
+		return resultData, fmt.Errorf("returned status code: %d", resp.StatusCode)
 	}
 
-	var mapData CurrentMap
-	if err = json.NewDecoder(resp.Body).Decode(&mapData); err != nil {
-		return CurrentMap{}, fmt.Errorf("error decoding json: %w", err)
+	if err = json.NewDecoder(resp.Body).Decode(&resultData); err != nil {
+		return resultData, fmt.Errorf("error decoding json: %w", err)
 	}
 
-	return mapData, nil
+	return resultData, nil
 }

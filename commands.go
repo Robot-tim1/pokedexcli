@@ -70,7 +70,7 @@ func commandMap() error {
 		return nil
 	}
 
-	locationStruct, err := pokeapi.FetchMap(replaceLater.Next)
+	locationStruct, err := pokeapi.FetchData[pokeapi.CurrentMap](replaceLater.Next)
 	if err != nil {
 		return fmt.Errorf("error getting map data: %w", err)
 	}
@@ -105,7 +105,7 @@ func commandMapb() error {
 		return nil
 	}
 
-	locationStruct, err := pokeapi.FetchMap(replaceLater.Previous)
+	locationStruct, err := pokeapi.FetchData[pokeapi.CurrentMap](replaceLater.Previous)
 	if err != nil {
 		return fmt.Errorf("error getting map data: %w", err)
 	}
