@@ -13,7 +13,10 @@ func startRepl() {
 	for {
 		fmt.Print("Pokedex > ")
 
-		reader.Scan()
+		if !reader.Scan() {
+			break
+		}
+
 		input := cleanInput(reader.Text())
 
 		if len(input) == 0 {
@@ -27,13 +30,10 @@ func startRepl() {
 		} else {
 			fmt.Println("Unknown command")
 		}
-
-		if err := reader.Err(); err != nil {
-			fmt.Printf("Error encountered: %v", err)
-			break
-		}
 	}
-
+	if err := reader.Err(); err != nil {
+		fmt.Printf("Error encountered: %v", err)
+	}
 }
 
 func cleanInput(text string) []string {
