@@ -34,41 +34,42 @@ func (c *Client) ListLocations(pageURL *string, cache *pokecache.Cache) (Current
 
 func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cache) (T, error) {
 	var resultData T
+	var zero T
 
 	value, ok := cache.Get(url)
 	if ok {
 		if err := json.Unmarshal(value, &resultData); err != nil {
-			return resultData, fmt.Errorf("error decoding json from cache: %w", err)
+			return zero, fmt.Errorf("error decoding json from cache: %w", err)
 		}
 		return resultData, nil
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return resultData, fmt.Errorf("error creating request: %w", err)
+		return zero, fmt.Errorf("error creating request: %w", err)
 	}
 	req.Header.Set("User-Agent", "pokedexcli for boot.dev course")
 
 	resp, err := pokeClient.Do(req)
 	if err != nil {
-		return resultData, fmt.Errorf("error fetching data: %w", err)
+		return zero, fmt.Errorf("error fetching data: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		io.Copy(io.Discard, resp.Body)
-		return resultData, fmt.Errorf("returned status code: %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
+		return zero, fmt.Errorf("returned status code: %d", resp.StatusCode)
 	}
 
-	bodyBytes, err := io.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
 	if err != nil {
-		return resultData, fmt.Errorf("error reading response body: %w", err)
+		return zero, fmt.Errorf("error reading response body: %w", err)
 	}
 
 	cache.Add(url, bodyBytes)
 
 	if err = json.Unmarshal(bodyBytes, &resultData); err != nil {
-		return resultData, fmt.Errorf("error decoding json: %w", err)
+		return zero, fmt.Errorf("error decoding json: %w", err)
 	}
 
 	return resultData, nil
