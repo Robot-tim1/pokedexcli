@@ -22,38 +22,31 @@ type config struct {
 	Previous      *string
 }
 
-var commandRegistry = map[string]cliCommand{
-	"help": {
-		name:        "help",
-		description: "Displays a help message",
-		callback:    commandHelp,
-	},
-	"exit": {
-		name:        "exit",
-		description: "Exit the Pokedex",
-		callback:    commandExit,
-	},
-	"map": {
-		name:        "map",
-		description: "Shows next 20 locations",
-		callback:    commandMap,
-	},
-	"mapb": {
-		name:        "mapb",
-		description: "Shows previous 20 locations",
-		callback:    commandMapb,
-	},
-}
+var commandRegistry map[string]cliCommand
 
-var commandDescriptions = []cliCommand{
-	{name: "help",
-		description: "Displays a help message"},
-	{name: "exit",
-		description: "Exit the Pokedex"},
-	{name: "map",
-		description: "Shows next 20 locations"},
-	{name: "mapb",
-		description: "Shows previous 20 locations"},
+func init() {
+	commandRegistry = map[string]cliCommand{
+		"help": {
+			name:        "help",
+			description: "Displays a help message",
+			callback:    commandHelp,
+		},
+		"exit": {
+			name:        "exit",
+			description: "Exit the Pokedex",
+			callback:    commandExit,
+		},
+		"map": {
+			name:        "map",
+			description: "Shows next 20 locations",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Shows previous 20 locations",
+			callback:    commandMapb,
+		},
+	}
 }
 
 func commandExit(cfg *config) error {
@@ -65,7 +58,7 @@ func commandExit(cfg *config) error {
 func commandHelp(cfg *config) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Print("Usage:\n\n")
-	for _, command := range commandDescriptions {
+	for _, command := range commandRegistry {
 		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	return nil

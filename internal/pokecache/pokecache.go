@@ -16,11 +16,11 @@ type CacheEntry struct {
 }
 
 func NewCache(interval time.Duration) *Cache {
-	Entries := make(map[string]CacheEntry)
+	entries := make(map[string]CacheEntry)
 
 	newCache := Cache{
 		Mu:      &sync.Mutex{},
-		Entries: Entries,
+		Entries: entries,
 	}
 
 	timer := time.Tick(interval)
@@ -53,6 +53,6 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	if entry, ok := c.Entries[key]; ok {
 		return entry.Val, true
 	} else {
-		return []byte{}, false
+		return nil, false
 	}
 }
