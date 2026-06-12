@@ -3,11 +3,15 @@ package pokeapi
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"time"
 )
 
-type CurrentMap struct {
+const (
+	baseURL = "https://pokeapi.co/api/v2"
+)
+
+type CurrentLocations struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
 	Previous *string `json:"previous"`
@@ -17,11 +21,16 @@ type CurrentMap struct {
 	} `json:"results"`
 }
 
-var pokeClient = &http.Client{
-	Timeout: 10 * time.Second,
+func (c *Client) ListLocations(pageURL *string) (CurrentLocations, error) {
+	url := baseURL + "/location-area"
+	if pageURL != nil {
+		url = *pageURL
+	}
+
+	return FetchData[CurrentLocations](&c.httpClient, url)
 }
 
-func FetchData[T any](url string) (T, error) {
+func FetchData[T any](pokeClient *http.Client, url string) (T, error) {
 	var resultData T
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -43,6 +52,8 @@ func FetchData[T any](url string) (T, error) {
 	if err = json.NewDecoder(resp.Body).Decode(&resultData); err != nil {
 		return resultData, fmt.Errorf("error decoding json: %w", err)
 	}
+
+	io.Copy(io.Discard, resp.Body)
 
 	return resultData, nil
 }
