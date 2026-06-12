@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/Robot-tim1/pokedexcli/internal/pokecache"
 )
 
 const (
@@ -21,17 +23,31 @@ type CurrentLocations struct {
 	} `json:"results"`
 }
 
-func (c *Client) ListLocations(pageURL *string) (CurrentLocations, error) {
+func (c *Client) ListLocations(pageURL *string, cache *pokecache.Cache) (CurrentLocations, error) {
 	url := baseURL + "/location-area"
 	if pageURL != nil {
 		url = *pageURL
 	}
 
-	return FetchData[CurrentLocations](&c.httpClient, url)
+	return FetchData[CurrentLocations](&c.httpClient, url, cache)
 }
 
-func FetchData[T any](pokeClient *http.Client, url string) (T, error) {
+func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cache) (T, error) {
 	var resultData T
+	var value []byte
+
+	cache.Mu.Lock()
+	if entry, ok := cache.Entries[url]; ok {
+		value = entry.Val
+	}
+	cache.Mu.Unlock()
+
+	if value != nil {
+		if err := json.Unmarshal(value, &resultData); err != nil {
+			return resultData, fmt.Errorf("error decoding json: %w", err)
+		}
+		return resultData, nil
+	}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -49,11 +65,16 @@ func FetchData[T any](pokeClient *http.Client, url string) (T, error) {
 		return resultData, fmt.Errorf("returned status code: %d", resp.StatusCode)
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(&resultData); err != nil {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resultData, fmt.Errorf("error reading response body: %w", err)
+	}
+
+	if err = json.Unmarshal(bodyBytes, &resultData); err != nil {
 		return resultData, fmt.Errorf("error decoding json: %w", err)
 	}
 
-	io.Copy(io.Discard, resp.Body)
+	cache.Add(url, bodyBytes)
 
 	return resultData, nil
 }

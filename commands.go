@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Robot-tim1/pokedexcli/internal/pokeapi"
+	"github.com/Robot-tim1/pokedexcli/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -16,6 +17,7 @@ type cliCommand struct {
 
 type config struct {
 	pokeapiClient pokeapi.Client
+	cache         *pokecache.Cache
 	Next          *string
 	Previous      *string
 }
@@ -70,7 +72,7 @@ func commandHelp(cfg *config) error {
 }
 
 func commandMap(cfg *config) error {
-	locationStruct, err := cfg.pokeapiClient.ListLocations(cfg.Next)
+	locationStruct, err := cfg.pokeapiClient.ListLocations(cfg.Next, cfg.cache)
 	if err != nil {
 		return fmt.Errorf("error getting map data: %w", err)
 	}
@@ -90,7 +92,7 @@ func commandMapb(cfg *config) error {
 		return errors.New("you're on the first page")
 	}
 
-	locationStruct, err := cfg.pokeapiClient.ListLocations(cfg.Previous)
+	locationStruct, err := cfg.pokeapiClient.ListLocations(cfg.Previous, cfg.cache)
 	if err != nil {
 		return fmt.Errorf("error getting map data: %w", err)
 	}
