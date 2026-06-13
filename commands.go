@@ -108,6 +108,7 @@ func commandCatch(cfg *config, args ...string) error {
 	if randomNum <= 50 {
 		fmt.Printf("%s was caught!\n", pokemon.Name)
 		cfg.pokeapiClient.SetPokedex(pokemon.Name, pokemon)
+		cfg.pokeapiClient.Cache.Delete("https://pokeapi.co/api/v2/pokemon/" + pokemon.Name)
 	} else {
 		fmt.Printf("%s escaped!\n", pokemon.Name)
 	}

@@ -11,7 +11,7 @@ import (
 type Client struct {
 	DexMu      *sync.Mutex
 	Pokedex    map[string]Pokemon
-	cache      *pokecache.Cache
+	Cache      *pokecache.Cache
 	httpClient http.Client
 }
 
@@ -19,7 +19,7 @@ func NewClient(timeout, cacheInterval time.Duration) Client {
 	return Client{
 		DexMu:   &sync.Mutex{},
 		Pokedex: make(map[string]Pokemon),
-		cache:   pokecache.NewCache(cacheInterval),
+		Cache:   pokecache.NewCache(cacheInterval),
 		httpClient: http.Client{
 			Timeout: timeout,
 		},

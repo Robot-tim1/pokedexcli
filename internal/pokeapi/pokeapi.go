@@ -19,13 +19,13 @@ func (c *Client) ListLocations(pageURL *string) (CurrentLocations, error) {
 		url = *pageURL
 	}
 
-	return FetchData[CurrentLocations](&c.httpClient, url, c.cache)
+	return FetchData[CurrentLocations](&c.httpClient, url, c.Cache)
 }
 
 func (c *Client) ListEncounters(areaName string) (PokemonEncounters, error) {
 	url := baseURL + "/location-area/" + areaName
 
-	encounters, err := FetchData[PokemonEncounters](&c.httpClient, url, c.cache)
+	encounters, err := FetchData[PokemonEncounters](&c.httpClient, url, c.Cache)
 	if err != nil {
 		return PokemonEncounters{}, fmt.Errorf("error getting area data: %w", err)
 	}
@@ -36,7 +36,7 @@ func (c *Client) ListEncounters(areaName string) (PokemonEncounters, error) {
 func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
 	url := baseURL + "/pokemon/" + pokemonName
 
-	pokemon, err := FetchData[Pokemon](&c.httpClient, url, nil)
+	pokemon, err := FetchData[Pokemon](&c.httpClient, url, c.Cache)
 	if err != nil {
 		return Pokemon{}, fmt.Errorf("error getting pokemon data: %w", err)
 	}
@@ -48,15 +48,13 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 	var resultData T
 	var zero T
 
-	if cache != nil {
-		value, ok := cache.Get(url)
-		if ok {
-			if err := json.Unmarshal(value, &resultData); err != nil {
-				cache.Delete(url)
-				return zero, fmt.Errorf("error decoding json from cache: %w", err)
-			}
-			return resultData, nil
+	value, ok := cache.Get(url)
+	if ok {
+		if err := json.Unmarshal(value, &resultData); err != nil {
+			cache.Delete(url)
+			return zero, fmt.Errorf("error decoding json from cache: %w", err)
 		}
+		return resultData, nil
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -85,9 +83,7 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 		return zero, fmt.Errorf("error decoding json: %w", err)
 	}
 
-	if cache != nil {
-		cache.Add(url, bodyBytes)
-	}
+	cache.Add(url, bodyBytes)
 
 	return resultData, nil
 }
