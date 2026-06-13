@@ -1,7 +1,9 @@
 package pokecache
 
 import (
+	"bytes"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 )
@@ -57,5 +59,51 @@ func TestReapLoop(t *testing.T) {
 	if ok {
 		t.Errorf("expected to not find key")
 		return
+	}
+}
+
+func TestConcurrencySafety(t *testing.T) {
+	const interval = 5 * time.Second
+	val := []byte("testdata")
+	cache := NewCache(interval)
+	var wg sync.WaitGroup
+	workers := 10
+	iterations := 5000
+
+	for range workers {
+		wg.Go(func() {
+			for j := range iterations {
+				key := fmt.Sprintf("key-%d", j)
+				cache.Add(key, val)
+			}
+		})
+	}
+
+	for range workers {
+		wg.Go(func() {
+			for j := range iterations {
+				key := fmt.Sprintf("key-%d", j)
+				cache.Get(key)
+			}
+		})
+	}
+
+	wg.Wait()
+}
+
+func TestAddLarge(t *testing.T) {
+	const interval = 2 * time.Minute
+	val := bytes.Repeat([]byte("a"), 5000*1024*1024)
+	cache := NewCache(interval)
+
+	cache.Add("key", val)
+
+	got, ok := cache.Get("key")
+	if !ok {
+		t.Fatalf("expected to find key")
+	}
+
+	if !bytes.Equal(got, val) {
+		t.Errorf("data corruption: retrieved bytes do not match original payload")
 	}
 }

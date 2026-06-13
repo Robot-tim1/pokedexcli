@@ -16,20 +16,16 @@ type CacheEntry struct {
 }
 
 func NewCache(interval time.Duration) *Cache {
-	entries := make(map[string]CacheEntry)
-
-	newCache := Cache{
+	newCache := &Cache{
 		Mu:      &sync.Mutex{},
-		Entries: entries,
+		Entries: make(map[string]CacheEntry),
 	}
-
-	timer := time.Tick(interval)
-	go newCache.reapLoop(timer, interval)
-
-	return &newCache
+	go newCache.reapLoop(interval)
+	return newCache
 }
 
-func (c *Cache) reapLoop(timer <-chan time.Time, interval time.Duration) {
+func (c *Cache) reapLoop(interval time.Duration) {
+	timer := time.Tick(interval)
 	for range timer {
 		c.Mu.Lock()
 		for key, entry := range c.Entries {

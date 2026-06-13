@@ -24,9 +24,13 @@ func startRepl(cfg *config) {
 		}
 
 		command := input[0]
+		var arguments []string
+		if len(input) > 1 {
+			arguments = input[1:]
+		}
 
 		if commandStruct, ok := getCommand[command]; ok {
-			err := commandStruct.callback(cfg)
+			err := commandStruct.callback(cfg, arguments...)
 			if err != nil {
 				fmt.Println(err)
 			}

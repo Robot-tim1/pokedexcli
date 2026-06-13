@@ -13,23 +13,35 @@ const (
 	baseURL = "https://pokeapi.co/api/v2"
 )
 
-type CurrentLocations struct {
-	Count    int     `json:"count"`
-	Next     *string `json:"next"`
-	Previous *string `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
-}
-
-func (c *Client) ListLocations(pageURL *string, cache *pokecache.Cache) (CurrentLocations, error) {
+func (c *Client) ListLocations(pageURL *string) (CurrentLocations, error) {
 	url := baseURL + "/location-area"
 	if pageURL != nil {
 		url = *pageURL
 	}
 
-	return FetchData[CurrentLocations](&c.httpClient, url, cache)
+	return FetchData[CurrentLocations](&c.httpClient, url, c.cache)
+}
+
+func (c *Client) ListEncounters(areaName string) (PokemonEncounters, error) {
+	url := baseURL + "/location-area/" + areaName
+
+	encounters, err := FetchData[PokemonEncounters](&c.httpClient, url, c.cache)
+	if err != nil {
+		return PokemonEncounters{}, fmt.Errorf("error getting area data: %w", err)
+	}
+
+	return encounters, nil
+}
+
+func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
+	url := baseURL + "/pokemon/" + pokemonName
+
+	pokemon, err := FetchData[Pokemon](&c.httpClient, url, c.cache)
+	if err != nil {
+		return Pokemon{}, fmt.Errorf("error getting pokemon data: %w", err)
+	}
+
+	return pokemon, nil
 }
 
 func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cache) (T, error) {
@@ -58,7 +70,7 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 
 	if resp.StatusCode != http.StatusOK {
 		io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
-		return zero, fmt.Errorf("returned status code: %d", resp.StatusCode)
+		return zero, fmt.Errorf("returned status code %d", resp.StatusCode)
 	}
 
 	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
@@ -66,11 +78,11 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 		return zero, fmt.Errorf("error reading response body: %w", err)
 	}
 
-	cache.Add(url, bodyBytes)
-
 	if err = json.Unmarshal(bodyBytes, &resultData); err != nil {
 		return zero, fmt.Errorf("error decoding json: %w", err)
 	}
+
+	cache.Add(url, bodyBytes)
 
 	return resultData, nil
 }
