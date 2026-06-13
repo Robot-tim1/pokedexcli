@@ -143,7 +143,7 @@ func commandCatch(cfg *config, args ...string) error {
 		return fmt.Errorf("too many arguments")
 	}
 
-	if poke, ok := cfg.pokeapiClient.Pokedex[args[0]]; ok {
+	if poke, ok := cfg.pokeapiClient.GetPokedex(args[0]); ok {
 		return fmt.Errorf("you already have %s in your pokedex", poke.Name)
 	}
 
@@ -156,7 +156,7 @@ func commandCatch(cfg *config, args ...string) error {
 	randomNum := rand.Intn(pokemon.BaseExperience)
 	if randomNum <= 30 {
 		fmt.Printf("%s was caught!\n", pokemon.Name)
-		cfg.pokeapiClient.Pokedex[pokemon.Name] = pokemon
+		cfg.pokeapiClient.SetPokedex(pokemon.Name, pokemon)
 	} else {
 		fmt.Printf("%s escaped!\n", pokemon.Name)
 	}
