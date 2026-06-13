@@ -77,17 +77,17 @@ func commandHelp(cfg *config, args ...string) error {
 }
 
 func commandMap(cfg *config, args ...string) error {
-	locationStruct, err := cfg.pokeapiClient.ListLocations(cfg.Next)
+	locationList, err := cfg.pokeapiClient.ListLocations(cfg.Next)
 	if err != nil {
 		return fmt.Errorf("error getting map data: %w", err)
 	}
 
-	for _, location := range locationStruct.Results {
+	for _, location := range locationList.Results {
 		fmt.Println(location.Name)
 	}
 
-	cfg.Next = locationStruct.Next
-	cfg.Previous = locationStruct.Previous
+	cfg.Next = locationList.Next
+	cfg.Previous = locationList.Previous
 
 	return nil
 }
