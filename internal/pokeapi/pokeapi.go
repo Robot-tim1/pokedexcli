@@ -36,7 +36,7 @@ func (c *Client) ListEncounters(areaName string) (PokemonEncounters, error) {
 func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
 	url := baseURL + "/pokemon/" + pokemonName
 
-	pokemon, err := FetchData[Pokemon](&c.httpClient, url, c.cache)
+	pokemon, err := FetchData[Pokemon](&c.httpClient, url, nil)
 	if err != nil {
 		return Pokemon{}, fmt.Errorf("error getting pokemon data: %w", err)
 	}
@@ -48,13 +48,15 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 	var resultData T
 	var zero T
 
-	value, ok := cache.Get(url)
-	if ok {
-		if err := json.Unmarshal(value, &resultData); err != nil {
-			cache.Delete(url)
-			return zero, fmt.Errorf("error decoding json from cache: %w", err)
+	if cache != nil {
+		value, ok := cache.Get(url)
+		if ok {
+			if err := json.Unmarshal(value, &resultData); err != nil {
+				cache.Delete(url)
+				return zero, fmt.Errorf("error decoding json from cache: %w", err)
+			}
+			return resultData, nil
 		}
-		return resultData, nil
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -83,7 +85,9 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 		return zero, fmt.Errorf("error decoding json: %w", err)
 	}
 
-	cache.Add(url, bodyBytes)
+	if cache != nil {
+		cache.Add(url, bodyBytes)
+	}
 
 	return resultData, nil
 }
