@@ -52,3 +52,9 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 		return nil, false
 	}
 }
+
+func (c *Cache) Delete(key string) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	delete(c.Entries, key)
+}

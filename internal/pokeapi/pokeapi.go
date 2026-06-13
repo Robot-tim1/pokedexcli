@@ -51,6 +51,7 @@ func FetchData[T any](pokeClient *http.Client, url string, cache *pokecache.Cach
 	value, ok := cache.Get(url)
 	if ok {
 		if err := json.Unmarshal(value, &resultData); err != nil {
+			cache.Delete(url)
 			return zero, fmt.Errorf("error decoding json from cache: %w", err)
 		}
 		return resultData, nil
