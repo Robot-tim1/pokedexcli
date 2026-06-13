@@ -9,53 +9,10 @@ import (
 	"github.com/Robot-tim1/pokedexcli/internal/pokeapi"
 )
 
-type cliCommand struct {
-	name        string
-	description string
-	callback    func(*config, ...string) error
-}
-
 type config struct {
 	pokeapiClient pokeapi.Client
 	Next          *string
 	Previous      *string
-}
-
-var commandRegistry map[string]cliCommand
-
-func init() {
-	commandRegistry = map[string]cliCommand{
-		"help": {
-			name:        "help",
-			description: "Displays a help message",
-			callback:    commandHelp,
-		},
-		"exit": {
-			name:        "exit",
-			description: "Exit the Pokedex",
-			callback:    commandExit,
-		},
-		"map": {
-			name:        "map",
-			description: "Shows next 20 locations",
-			callback:    commandMap,
-		},
-		"mapb": {
-			name:        "mapb",
-			description: "Shows previous 20 locations",
-			callback:    commandMapb,
-		},
-		"explore": {
-			name:        "explore <location_name>",
-			description: "Explore a location",
-			callback:    commandExplore,
-		},
-		"catch": {
-			name:        "catch <pokemon_name>",
-			description: "Attempt to catch a pokemon",
-			callback:    commandCatch,
-		},
-	}
 }
 
 func commandExit(cfg *config, args ...string) error {
@@ -113,11 +70,8 @@ func commandMapb(cfg *config, args ...string) error {
 }
 
 func commandExplore(cfg *config, args ...string) error {
-	if args == nil {
+	if len(args) != 1 {
 		return fmt.Errorf("you must provide a location name")
-	}
-	if len(args) > 1 {
-		return fmt.Errorf("too many arguments")
 	}
 
 	location, err := cfg.pokeapiClient.ListEncounters(args[0])
@@ -136,11 +90,8 @@ func commandExplore(cfg *config, args ...string) error {
 }
 
 func commandCatch(cfg *config, args ...string) error {
-	if args == nil {
+	if len(args) != 1 {
 		return fmt.Errorf("you must provide a pokemon name")
-	}
-	if len(args) > 1 {
-		return fmt.Errorf("too many arguments")
 	}
 
 	if poke, ok := cfg.pokeapiClient.GetPokedex(args[0]); ok {
@@ -154,12 +105,42 @@ func commandCatch(cfg *config, args ...string) error {
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
 	randomNum := rand.Intn(pokemon.BaseExperience)
-	if randomNum <= 30 {
+	if randomNum <= 50 {
 		fmt.Printf("%s was caught!\n", pokemon.Name)
 		cfg.pokeapiClient.SetPokedex(pokemon.Name, pokemon)
 	} else {
 		fmt.Printf("%s escaped!\n", pokemon.Name)
 	}
 
+	return nil
+}
+
+func commandInspect(cfg *config, args ...string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("you must provide a pokemon name")
+	}
+
+	p, ok := cfg.pokeapiClient.GetPokedex(args[0])
+	if !ok {
+		return fmt.Errorf("you have not caught %s", args[0])
+	}
+
+	fmt.Printf("Name: %s\nHeight: %d\nWeight: %d\nStats:\n  -hp: %d\n  -attack: %d\n  -defense: %d\n  -special-attack: %d\n  -special-defense: %d\n  -speed: %d\nTypes:\n",
+		p.Name, p.Height, p.Weight, p.Stats[0].BaseStat, p.Stats[1].BaseStat,
+		p.Stats[2].BaseStat, p.Stats[3].BaseStat, p.Stats[4].BaseStat, p.Stats[5].BaseStat)
+
+	for i := range p.Types {
+		fmt.Printf("  - %s\n", p.Types[i].Type.Name)
+	}
+
+	return nil
+}
+
+func commandPokedex(cfg *config, args ...string) error {
+	cfg.pokeapiClient.DexMu.Lock()
+	defer cfg.pokeapiClient.DexMu.Unlock()
+	for name := range cfg.pokeapiClient.Pokedex {
+		fmt.Printf(" - %s\n", name)
+	}
 	return nil
 }

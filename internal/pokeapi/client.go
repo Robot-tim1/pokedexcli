@@ -9,7 +9,7 @@ import (
 )
 
 type Client struct {
-	dexMu      *sync.Mutex
+	DexMu      *sync.Mutex
 	Pokedex    map[string]Pokemon
 	cache      *pokecache.Cache
 	httpClient http.Client
@@ -17,7 +17,7 @@ type Client struct {
 
 func NewClient(timeout, cacheInterval time.Duration) Client {
 	return Client{
-		dexMu:   &sync.Mutex{},
+		DexMu:   &sync.Mutex{},
 		Pokedex: make(map[string]Pokemon),
 		cache:   pokecache.NewCache(cacheInterval),
 		httpClient: http.Client{
@@ -27,14 +27,14 @@ func NewClient(timeout, cacheInterval time.Duration) Client {
 }
 
 func (c *Client) GetPokedex(pokemon string) (Pokemon, bool) {
-	c.dexMu.Lock()
-	defer c.dexMu.Unlock()
+	c.DexMu.Lock()
+	defer c.DexMu.Unlock()
 	poke, ok := c.Pokedex[pokemon]
 	return poke, ok
 }
 
 func (c *Client) SetPokedex(key string, pokemon Pokemon) {
-	c.dexMu.Lock()
-	defer c.dexMu.Unlock()
+	c.DexMu.Lock()
+	defer c.DexMu.Unlock()
 	c.Pokedex[key] = pokemon
 }
