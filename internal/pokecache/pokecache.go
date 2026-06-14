@@ -15,8 +15,8 @@ type CacheEntry struct {
 	Val       []byte
 }
 
-func NewCache(interval time.Duration) *Cache {
-	newCache := &Cache{
+func NewCache(interval time.Duration) Cache {
+	newCache := Cache{
 		cacheMu: &sync.Mutex{},
 		Entries: make(map[string]CacheEntry),
 	}

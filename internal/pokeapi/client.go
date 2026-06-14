@@ -11,7 +11,7 @@ import (
 type Client struct {
 	DexMu      *sync.Mutex
 	Pokedex    map[string]Pokemon
-	Cache      *pokecache.Cache
+	Cache      pokecache.Cache
 	httpClient http.Client
 }
 

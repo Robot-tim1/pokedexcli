@@ -19,13 +19,13 @@ func (c *Client) ListLocations(pageURL *string) (CurrentLocations, error) {
 		url = *pageURL
 	}
 
-	return FetchData[CurrentLocations](&c.httpClient, url, c.Cache)
+	return FetchData[CurrentLocations](&c.httpClient, url, &c.Cache)
 }
 
 func (c *Client) ListEncounters(areaName string) (PokemonEncounters, error) {
 	url := baseURL + "/location-area/" + areaName
 
-	encounters, err := FetchData[PokemonEncounters](&c.httpClient, url, c.Cache)
+	encounters, err := FetchData[PokemonEncounters](&c.httpClient, url, &c.Cache)
 	if err != nil {
 		return PokemonEncounters{}, fmt.Errorf("error getting area data: %w", err)
 	}
@@ -36,7 +36,7 @@ func (c *Client) ListEncounters(areaName string) (PokemonEncounters, error) {
 func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
 	url := baseURL + "/pokemon/" + pokemonName
 
-	pokemon, err := FetchData[Pokemon](&c.httpClient, url, c.Cache)
+	pokemon, err := FetchData[Pokemon](&c.httpClient, url, &c.Cache)
 	if err != nil {
 		return Pokemon{}, fmt.Errorf("error getting pokemon data: %w", err)
 	}
