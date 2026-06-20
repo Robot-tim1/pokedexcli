@@ -107,6 +107,7 @@ func commandCatch(cfg *config, args ...string) error {
 	randomNum := rand.Intn(pokemon.BaseExperience)
 	if randomNum <= 50 {
 		fmt.Printf("%s was caught!\n", pokemon.Name)
+		fmt.Printf("You may now inspect it with the inspect command.\n")
 		cfg.pokeapiClient.SetPokedex(pokemon.Name, pokemon)
 		cfg.pokeapiClient.Cache.Delete("https://pokeapi.co/api/v2/pokemon/" + pokemon.Name)
 	} else {
@@ -123,13 +124,17 @@ func commandInspect(cfg *config, args ...string) error {
 
 	p, ok := cfg.pokeapiClient.GetPokedex(args[0])
 	if !ok {
-		return fmt.Errorf("you have not caught %s", args[0])
+		return fmt.Errorf("you have not caught that pokemon")
 	}
 
-	fmt.Printf("Name: %s\nHeight: %d\nWeight: %d\nStats:\n  -hp: %d\n  -attack: %d\n  -defense: %d\n  -special-attack: %d\n  -special-defense: %d\n  -speed: %d\nTypes:\n",
-		p.Name, p.Height, p.Weight, p.Stats[0].BaseStat, p.Stats[1].BaseStat,
-		p.Stats[2].BaseStat, p.Stats[3].BaseStat, p.Stats[4].BaseStat, p.Stats[5].BaseStat)
+	fmt.Printf("Name: %s\nHeight: %d\nWeight: %d\n", p.Name, p.Height, p.Weight)
 
+	fmt.Printf("Stats:\n")
+	for i := range p.Stats {
+		fmt.Printf("  -%s: %d\n", p.Stats[i].Stat.Name, p.Stats[i].BaseStat)
+	}
+
+	fmt.Printf("Types:\n")
 	for i := range p.Types {
 		fmt.Printf("  - %s\n", p.Types[i].Type.Name)
 	}
