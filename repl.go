@@ -50,11 +50,7 @@ func startRepl(cfg *config) {
 			fmt.Print("^C\r\n")
 			return
 		default:
-			if n == 1 && buf[0] >= 32 && buf[0] <= 126 {
-				currentInput = append(currentInput, buf[0])
-				fmt.Print(string(buf[0]))
-				currentInputIndex++
-			}
+			keyInput(n, buf, &currentInput, &currentInputIndex, prompt)
 		}
 	}
 }

@@ -5,6 +5,34 @@ import (
 	"slices"
 )
 
+func keyInput(n int, buf []byte, currentInput *[]byte, currentInputIndex *int, prompt string) {
+	if n == 1 && buf[0] >= 32 && buf[0] <= 126 {
+		if len(*currentInput) == 0 {
+			*currentInput = append(*currentInput, buf[0])
+		} else {
+			*currentInput = slices.Insert(*currentInput, *currentInputIndex+1, buf[0])
+		}
+		fmt.Print(ClearLine + prompt + string(*currentInput))
+		*currentInputIndex++
+		if *currentInputIndex != len(*currentInput)-1 {
+			fmt.Printf("\x1b[%dD", len(*currentInput)-*currentInputIndex-1)
+		}
+	}
+}
+
+func backInput(currentInput *[]byte, currentInputIndex *int, prompt string) {
+	if len(*currentInput) > 0 && *currentInputIndex != -1 {
+
+		*currentInput = slices.Delete(*currentInput, *currentInputIndex, *currentInputIndex+1)
+
+		fmt.Print(ClearLine + prompt + string(*currentInput))
+		*currentInputIndex--
+		if *currentInputIndex != len(*currentInput)-1 {
+			fmt.Printf("\x1b[%dD", len(*currentInput)-*currentInputIndex-1)
+		}
+	}
+}
+
 func upInput(history []string, historyIndex *int, currentInput *[]byte, currentInputIndex *int, prompt string) {
 	if len(history) > 0 {
 		if *historyIndex == -1 {
@@ -94,17 +122,4 @@ func enterInput(history *[]string, historyIndex *int, currentInput *[]byte, curr
 		fmt.Print(prompt)
 	}
 	return false
-}
-
-func backInput(currentInput *[]byte, currentInputIndex *int, prompt string) {
-	if len(*currentInput) > 0 && *currentInputIndex != -1 {
-
-		*currentInput = slices.Delete(*currentInput, *currentInputIndex, *currentInputIndex+1)
-
-		fmt.Print(ClearLine + prompt + string(*currentInput))
-		*currentInputIndex--
-		if *currentInputIndex != len(*currentInput)-1 {
-			fmt.Printf("\x1b[%dD", len(*currentInput)-*currentInputIndex-1)
-		}
-	}
 }
