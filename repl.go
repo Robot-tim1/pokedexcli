@@ -36,14 +36,16 @@ func startRepl(cfg *config) {
 			upInput(history, &historyIndex, &currentInput, &currentInputIndex, prompt)
 		case DownArrow:
 			downInput(history, &historyIndex, &currentInput, &currentInputIndex, prompt)
-		case "\r", "\n":
-			if enterInput(&history, &historyIndex, &currentInput, &currentInputIndex, prompt, cfg) {
-				return
-			}
 		case LeftArrow:
 			leftInput(&currentInputIndex)
 		case RightArrow:
 			rightInput(&currentInputIndex, currentInput)
+		case "\f":
+			fmt.Printf("\033[H\033[2J%s", prompt+string(currentInput))
+		case "\r", "\n":
+			if enterInput(&history, &historyIndex, &currentInput, &currentInputIndex, prompt, cfg) {
+				return
+			}
 		case "\x7f", "\x08":
 			backInput(&currentInput, &currentInputIndex, prompt)
 		case "\x03":
