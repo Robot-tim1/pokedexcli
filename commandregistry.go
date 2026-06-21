@@ -50,5 +50,10 @@ func init() {
 			description: "Shows all pokemon you've caught",
 			callback:    commandPokedex,
 		},
+		"delete": {
+			name:        "delete",
+			description: "deletes your savedata",
+			callback:    commandDelete,
+		},
 	}
 }

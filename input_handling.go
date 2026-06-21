@@ -102,7 +102,7 @@ func enterInput(history *[]string, historyIndex *int, currentInput *[]byte, curr
 		if commandStruct, ok := commandRegistry[command]; ok {
 			err := commandStruct.callback(cfg, args...)
 			if err != nil {
-				fmt.Printf("error calling callback function: %v\r\n", err)
+				fmt.Printf("%v\r\n", err)
 			}
 		} else {
 			fmt.Print("Unknown command\r\n")

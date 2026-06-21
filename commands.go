@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/Robot-tim1/pokedexcli/internal/pokeapi"
+	"github.com/Robot-tim1/pokedexcli/internal/pokesave"
 )
 
 type config struct {
@@ -15,6 +16,12 @@ type config struct {
 }
 
 func commandExit(cfg *config, args ...string) error {
+	if len(cfg.pokeapiClient.Pokedex) != 0 {
+		err := pokesave.SavePokedex(cfg.pokeapiClient.Pokedex)
+		if err != nil {
+			return fmt.Errorf("error saving data: %w", err)
+		}
+	}
 	fmt.Print("Closing the Pokedex... Goodbye!\r\n")
 	return nil
 }
@@ -142,6 +149,15 @@ func commandPokedex(cfg *config, args ...string) error {
 	defer cfg.pokeapiClient.DexMu.Unlock()
 	for name := range cfg.pokeapiClient.Pokedex {
 		fmt.Printf(" - %s\r\n", name)
+	}
+	return nil
+}
+
+func commandDelete(cfg *config, args ...string) error {
+	cfg.pokeapiClient.Pokedex = make(map[string]pokeapi.Pokemon)
+	err := pokesave.DeletePokedex()
+	if err != nil {
+		return fmt.Errorf("error deleting savedata: %w", err)
 	}
 	return nil
 }
