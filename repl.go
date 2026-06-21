@@ -48,9 +48,17 @@ func startRepl(cfg *config) {
 			}
 		case "\x7f", "\x08":
 			backInput(&currentInput, &currentInputIndex, prompt)
+		case "\x01":
+			for currentInputIndex != -1 {
+				leftInput(&currentInputIndex)
+			}
 		case "\x03":
 			fmt.Print("^C\r\n")
 			return
+		case "\x05":
+			for currentInputIndex < len(currentInput)-1 {
+				rightInput(&currentInputIndex, currentInput)
+			}
 		default:
 			keyInput(n, buf, &currentInput, &currentInputIndex, prompt)
 		}
