@@ -15,9 +15,6 @@ type config struct {
 }
 
 func commandExit(cfg *config, args ...string) error {
-	if args != nil {
-		fmt.Printf("You can't use an argument on exit idiot!\r\n")
-	}
 	fmt.Print("Closing the Pokedex... Goodbye!\r\n")
 	return nil
 }
@@ -69,7 +66,7 @@ func commandMapb(cfg *config, args ...string) error {
 
 func commandExplore(cfg *config, args ...string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("you must provide a location name")
+		return errors.New("you must provide a location name")
 	}
 
 	location, err := cfg.pokeapiClient.ListEncounters(args[0])
@@ -89,7 +86,7 @@ func commandExplore(cfg *config, args ...string) error {
 
 func commandCatch(cfg *config, args ...string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("you must provide a pokemon name")
+		return errors.New("you must provide a pokemon name")
 	}
 
 	if poke, ok := cfg.pokeapiClient.GetPokedex(args[0]); ok {
@@ -105,7 +102,7 @@ func commandCatch(cfg *config, args ...string) error {
 	randomNum := rand.Intn(pokemon.BaseExperience)
 	if randomNum <= 50 {
 		fmt.Printf("%s was caught!\r\n", pokemon.Name)
-		fmt.Printf("You may now inspect it with the inspect command.\r\n")
+		fmt.Print("You may now inspect it with the inspect command.\r\n")
 		cfg.pokeapiClient.SetPokedex(pokemon.Name, pokemon)
 		cfg.pokeapiClient.Cache.Delete("https://pokeapi.co/api/v2/pokemon/" + pokemon.Name)
 	} else {
@@ -117,12 +114,12 @@ func commandCatch(cfg *config, args ...string) error {
 
 func commandInspect(cfg *config, args ...string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("you must provide a pokemon name")
+		return errors.New("you must provide a pokemon name")
 	}
 
 	p, ok := cfg.pokeapiClient.GetPokedex(args[0])
 	if !ok {
-		return fmt.Errorf("you have not caught that pokemon")
+		return errors.New("you have not caught that pokemon")
 	}
 
 	fmt.Printf("Name: %s\r\nHeight: %d\r\nWeight: %d\r\n", p.Name, p.Height, p.Weight)

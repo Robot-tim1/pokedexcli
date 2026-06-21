@@ -26,7 +26,7 @@ func startRepl(cfg *config) {
 	for {
 		n, err := os.Stdin.Read(buf)
 		if err != nil {
-			fmt.Printf("%v\r\n", err)
+			fmt.Printf("error reading from Stdin: %v\r\n", err)
 			return
 		}
 
