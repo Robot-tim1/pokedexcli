@@ -1,9 +1,11 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/Robot-tim1/pokedexcli/internal/pokeapi"
+	"golang.org/x/term"
 )
 
 func main() {
@@ -11,5 +13,12 @@ func main() {
 	cfg := &config{
 		pokeapiClient: pokeClient,
 	}
+
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
 	startRepl(cfg)
 }

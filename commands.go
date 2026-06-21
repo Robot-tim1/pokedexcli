@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"os"
 
 	"github.com/Robot-tim1/pokedexcli/internal/pokeapi"
 )
@@ -17,18 +16,17 @@ type config struct {
 
 func commandExit(cfg *config, args ...string) error {
 	if args != nil {
-		fmt.Printf("You can't use an argument on exit idiot!\n")
+		fmt.Printf("You can't use an argument on exit idiot!\r\n")
 	}
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
+	fmt.Print("Closing the Pokedex... Goodbye!\r\n")
 	return nil
 }
 
 func commandHelp(cfg *config, args ...string) error {
-	fmt.Println("Welcome to the Pokedex!")
-	fmt.Print("Usage:\n\n")
+	fmt.Print("Welcome to the Pokedex!\r\n")
+	fmt.Print("Usage:\r\n\n")
 	for _, command := range commandRegistry {
-		fmt.Printf("%s: %s\n", command.name, command.description)
+		fmt.Printf("%s: %s\r\n", command.name, command.description)
 	}
 	return nil
 }
@@ -40,7 +38,7 @@ func commandMap(cfg *config, args ...string) error {
 	}
 
 	for _, location := range locationList.Results {
-		fmt.Println(location.Name)
+		fmt.Printf("%s\r\n", location.Name)
 	}
 
 	cfg.Next = locationList.Next
@@ -60,7 +58,7 @@ func commandMapb(cfg *config, args ...string) error {
 	}
 
 	for _, location := range locationList.Results {
-		fmt.Println(location.Name)
+		fmt.Printf("%s\r\n", location.Name)
 	}
 
 	cfg.Next = locationList.Next
@@ -79,11 +77,11 @@ func commandExplore(cfg *config, args ...string) error {
 		return fmt.Errorf("error getting encounters data: %w", err)
 	}
 
-	fmt.Printf("Exploring %s...\n", location.Name)
-	fmt.Println("Found Pokemon: ")
+	fmt.Printf("Exploring %s...\r\n", location.Name)
+	fmt.Print("Found Pokemon: \r\n")
 
 	for _, enc := range location.PokemonEncounters {
-		fmt.Printf(" - %s\n", enc.Pokemon.Name)
+		fmt.Printf(" - %s\r\n", enc.Pokemon.Name)
 	}
 
 	return nil
@@ -103,15 +101,15 @@ func commandCatch(cfg *config, args ...string) error {
 		return fmt.Errorf("error getting pokemon data: %w", err)
 	}
 
-	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+	fmt.Printf("Throwing a Pokeball at %s...\r\n", pokemon.Name)
 	randomNum := rand.Intn(pokemon.BaseExperience)
 	if randomNum <= 50 {
-		fmt.Printf("%s was caught!\n", pokemon.Name)
-		fmt.Printf("You may now inspect it with the inspect command.\n")
+		fmt.Printf("%s was caught!\r\n", pokemon.Name)
+		fmt.Printf("You may now inspect it with the inspect command.\r\n")
 		cfg.pokeapiClient.SetPokedex(pokemon.Name, pokemon)
 		cfg.pokeapiClient.Cache.Delete("https://pokeapi.co/api/v2/pokemon/" + pokemon.Name)
 	} else {
-		fmt.Printf("%s escaped!\n", pokemon.Name)
+		fmt.Printf("%s escaped!\r\n", pokemon.Name)
 	}
 
 	return nil
@@ -127,16 +125,16 @@ func commandInspect(cfg *config, args ...string) error {
 		return fmt.Errorf("you have not caught that pokemon")
 	}
 
-	fmt.Printf("Name: %s\nHeight: %d\nWeight: %d\n", p.Name, p.Height, p.Weight)
+	fmt.Printf("Name: %s\r\nHeight: %d\r\nWeight: %d\r\n", p.Name, p.Height, p.Weight)
 
-	fmt.Printf("Stats:\n")
+	fmt.Printf("Stats:\r\n")
 	for i := range p.Stats {
-		fmt.Printf("  -%s: %d\n", p.Stats[i].Stat.Name, p.Stats[i].BaseStat)
+		fmt.Printf("  -%s: %d\r\n", p.Stats[i].Stat.Name, p.Stats[i].BaseStat)
 	}
 
-	fmt.Printf("Types:\n")
+	fmt.Printf("Types:\r\n")
 	for i := range p.Types {
-		fmt.Printf("  - %s\n", p.Types[i].Type.Name)
+		fmt.Printf("  - %s\r\n", p.Types[i].Type.Name)
 	}
 
 	return nil
@@ -146,7 +144,7 @@ func commandPokedex(cfg *config, args ...string) error {
 	cfg.pokeapiClient.DexMu.Lock()
 	defer cfg.pokeapiClient.DexMu.Unlock()
 	for name := range cfg.pokeapiClient.Pokedex {
-		fmt.Printf(" - %s\n", name)
+		fmt.Printf(" - %s\r\n", name)
 	}
 	return nil
 }

@@ -1,45 +1,61 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strings"
 )
 
+const (
+	UpArrow    = "\x1b[A"
+	DownArrow  = "\x1b[B"
+	RightArrow = "\x1b[C"
+	LeftArrow  = "\x1b[D"
+	ClearLine  = "\x1b[2K\r"
+)
+
 func startRepl(cfg *config) {
-	getCommand := commandRegistry
-	reader := bufio.NewScanner(os.Stdin)
+	var history []string
+	historyIndex := -1
+	var currentInput []byte
+	currentInputIndex := -1
+	buf := make([]byte, 512)
+
+	prompt := "Pokedex > "
+	fmt.Print(prompt)
 	for {
-		fmt.Print("Pokedex > ")
-
-		if !reader.Scan() {
-			break
+		n, err := os.Stdin.Read(buf)
+		if err != nil {
+			fmt.Printf("%v\r\n", err)
+			return
 		}
 
-		input := cleanInput(reader.Text())
-
-		if len(input) == 0 {
-			continue
-		}
-
-		command := input[0]
-		var arguments []string
-		if len(input) > 1 {
-			arguments = input[1:]
-		}
-
-		if commandStruct, ok := getCommand[command]; ok {
-			err := commandStruct.callback(cfg, arguments...)
-			if err != nil {
-				fmt.Println(err)
+		inputStr := string(buf[:n])
+		switch inputStr {
+		case UpArrow:
+			upInput(history, &historyIndex, &currentInput, &currentInputIndex, prompt)
+		case DownArrow:
+			downInput(history, &historyIndex, &currentInput, &currentInputIndex, prompt)
+		case "\r", "\n":
+			if enterInput(&history, &historyIndex, &currentInput, &currentInputIndex, prompt, cfg) {
+				return
 			}
-		} else {
-			fmt.Println("Unknown command")
+		case LeftArrow:
+			leftInput(&currentInputIndex)
+		case RightArrow:
+			rightInput(&currentInputIndex, currentInput)
+		case "\x7f", "\x08":
+			backInput(&currentInput, &currentInputIndex, prompt)
+		case "\x03":
+			fmt.Print("^C\r\n")
+			return
+		default:
+			if n == 1 && buf[0] >= 32 && buf[0] <= 126 {
+				currentInput = append(currentInput, buf[0])
+				fmt.Print(string(buf[0]))
+				currentInputIndex++
+			}
 		}
-	}
-	if err := reader.Err(); err != nil {
-		fmt.Printf("Error encountered: %v", err)
 	}
 }
 
