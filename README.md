@@ -1,6 +1,6 @@
 ## Pokedexcli
 
-A pokedex cli made with the [Pokeapi](https://pokeapi.co/) for [boot.dev](https://www.boot.dev/u/robottim) 
+A pokedex cli made with the [Pokeapi](https://pokeapi.co/) for [Boot.dev](https://www.boot.dev) 
 
 ## Unique Features 
 
