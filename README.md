@@ -6,7 +6,7 @@ A pokedex cli made with the [Pokeapi](https://pokeapi.co/) for [Boot.dev](https:
 
 Most of what's here is made with the guidance of the Boot.dev course, though most implementation details were handled by me. The course told me what to add and sometimes gave a little help to get me started 
 
-([my boot.dev profile here](https://www.boot.dev/u/robottim)) - I'm a free user so don't expect to see much there 
+([my Boot.dev profile here](https://www.boot.dev/u/robottim)) - I'm a free user so don't expect to see much there 
 
 But let me tell you what I've added all on my own past the curriculum
 
