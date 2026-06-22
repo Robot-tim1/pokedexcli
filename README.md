@@ -4,7 +4,11 @@ A pokedex cli made with the [Pokeapi](https://pokeapi.co/) for [boot.dev](https:
 
 ## Unique Features 
 
-Most of what's here is made with the help of the Boot.dev course ([my boot.dev profile here](https://www.boot.dev/u/robottim) it's not very impressive since I'm a free user), but let me tell you what I've added myself past the curriculum
+Most of what's here is made with the guidance of the Boot.dev course, though most implementation details were handled by me. The course told me what to add and sometimes gave a little help to get me started 
+
+([my boot.dev profile here](https://www.boot.dev/u/robottim)) - I'm a free user so don't expect to see much there 
+
+But let me tell you what I've added all on my own past the curriculum
 
 ### Command Line Shortcuts:
 
@@ -14,14 +18,14 @@ Here is the current list of terminal features
 - Cycling through your command history with up and down arrow keys
 - Navigating the cursor with left and right arrow keys
 - Handles keyboard inputs as expected no matter where the cursor is
-- Moving the cursor to the ends with ctrl+A and ctrl+E
-- Clearing the screen with ctrl+L
-- Deleting on either ends of the cursor with ctrl+U and ctrl+K
-- Pasting what you yanked with ctrl+U/K with ctrl+Y
+- Moving the cursor to the ends with Ctrl+A and Ctrl+E
+- Clearing the screen with Ctrl+L
+- Deleting on either ends of the cursor with Ctrl+U and Ctrl+K
+- Pasting what you killed with Ctrl+U/K with Ctrl+Y
 
 ### Persistent Save data:
 
-Every time you exit your pokedex is saved as a json file inside a pokedexcli folder which is created at documents/.local/share depending on OS
+Every time you exit, your pokedex is saved as a json file inside a pokedexcli folder which is created at documents or .local/share depending on OS
 
 When the program starts again it reads from the file and updates the pokedex to have the save data, which can be deleted with the delete command
 
