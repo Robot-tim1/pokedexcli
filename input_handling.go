@@ -5,91 +5,91 @@ import (
 	"slices"
 )
 
-func keyInput(n int, buf []byte, currentInput *[]byte, currentInputIndex *int, prompt string) {
+func (r *replState) keyInput(n int, buf []byte) {
 	if n == 1 && buf[0] >= 32 && buf[0] <= 126 {
-		if len(*currentInput) == 0 {
-			*currentInput = append(*currentInput, buf[0])
+		if len(r.currentInput) == 0 {
+			r.currentInput = append(r.currentInput, buf[0])
 		} else {
-			*currentInput = slices.Insert(*currentInput, *currentInputIndex+1, buf[0])
+			r.currentInput = slices.Insert(r.currentInput, r.currentInputIndex+1, buf[0])
 		}
-		fmt.Print(ClearLine + prompt + string(*currentInput))
-		*currentInputIndex++
-		if *currentInputIndex != len(*currentInput)-1 {
-			fmt.Printf("\x1b[%dD", len(*currentInput)-*currentInputIndex-1)
-		}
-	}
-}
-
-func backInput(currentInput *[]byte, currentInputIndex *int, prompt string) {
-	if len(*currentInput) > 0 && *currentInputIndex != -1 {
-
-		*currentInput = slices.Delete(*currentInput, *currentInputIndex, *currentInputIndex+1)
-
-		fmt.Print(ClearLine + prompt + string(*currentInput))
-		*currentInputIndex--
-		if *currentInputIndex != len(*currentInput)-1 {
-			fmt.Printf("\x1b[%dD", len(*currentInput)-*currentInputIndex-1)
+		fmt.Print(ClearLine + Prompt + string(r.currentInput))
+		r.currentInputIndex++
+		if r.currentInputIndex != len(r.currentInput)-1 {
+			fmt.Printf("\x1b[%dD", (len(r.currentInput)-1)-r.currentInputIndex)
 		}
 	}
 }
 
-func upInput(history []string, historyIndex *int, currentInput *[]byte, currentInputIndex *int, prompt string) {
-	if len(history) > 0 {
-		if *historyIndex == -1 {
-			*historyIndex = len(history) - 1
-		} else if *historyIndex != 0 {
-			*historyIndex--
-		}
-		lastCmd := history[*historyIndex]
-		*currentInput = []byte(lastCmd)
-		*currentInputIndex = len(*currentInput) - 1
+func (r *replState) backInput() {
+	if len(r.currentInput) > 0 && r.currentInputIndex != -1 {
 
-		fmt.Print(ClearLine + prompt + lastCmd)
+		r.currentInput = slices.Delete(r.currentInput, r.currentInputIndex, r.currentInputIndex+1)
+
+		fmt.Print(ClearLine + Prompt + string(r.currentInput))
+		r.currentInputIndex--
+		if r.currentInputIndex != len(r.currentInput)-1 {
+			fmt.Printf("\x1b[%dD", (len(r.currentInput)-1)-r.currentInputIndex)
+		}
 	}
 }
 
-func downInput(history []string, historyIndex *int, currentInput *[]byte, currentInputIndex *int, prompt string) {
-	if *historyIndex != -1 {
-		if *historyIndex != len(history)-1 {
-			*historyIndex++
+func (r *replState) upInput() {
+	if len(r.history) > 0 {
+		if r.historyIndex == -1 {
+			r.historyIndex = len(r.history) - 1
+		} else if r.historyIndex != 0 {
+			r.historyIndex--
+		}
+		lastCmd := r.history[r.historyIndex]
+		r.currentInput = []byte(lastCmd)
+		r.currentInputIndex = len(r.currentInput) - 1
+
+		fmt.Print(ClearLine + Prompt + lastCmd)
+	}
+}
+
+func (r *replState) downInput() {
+	if r.historyIndex != -1 {
+		if r.historyIndex != len(r.history)-1 {
+			r.historyIndex++
 		} else {
-			*historyIndex = -1
+			r.historyIndex = -1
 		}
 
-		var lastCmd string
-		if *historyIndex != -1 {
-			lastCmd = history[*historyIndex]
+		var nextCmd string
+		if r.historyIndex != -1 {
+			nextCmd = r.history[r.historyIndex]
 		} else {
-			lastCmd = ""
+			nextCmd = ""
 		}
-		*currentInput = []byte(lastCmd)
-		*currentInputIndex = len(*currentInput) - 1
+		r.currentInput = []byte(nextCmd)
+		r.currentInputIndex = len(r.currentInput) - 1
 
-		fmt.Print(ClearLine + prompt + lastCmd)
+		fmt.Print(ClearLine + Prompt + nextCmd)
 	}
 }
 
-func leftInput(currentInputIndex *int) {
-	if *currentInputIndex >= 0 {
+func (r *replState) leftInput() {
+	if r.currentInputIndex >= 0 {
 		fmt.Print(LeftArrow)
-		*currentInputIndex--
+		r.currentInputIndex--
 	}
 }
 
-func rightInput(currentInputIndex *int, currentInput []byte) {
-	if *currentInputIndex < len(currentInput)-1 {
+func (r *replState) rightInput() {
+	if r.currentInputIndex < len(r.currentInput)-1 {
 		fmt.Print(RightArrow)
-		*currentInputIndex++
+		r.currentInputIndex++
 	}
 }
 
-func enterInput(history *[]string, historyIndex *int, currentInput *[]byte, currentInputIndex *int, prompt string, cfg *config) bool {
-	dirtyInput := string(*currentInput)
+func (r *replState) enterInput(cfg *config) bool {
+	dirtyInput := string(r.currentInput)
 	if dirtyInput != "" {
 		fmt.Print("\r\n")
 		input := cleanInput(dirtyInput)
 		if len(input) == 0 {
-			fmt.Print(prompt)
+			fmt.Print(Prompt)
 			return false
 		}
 
@@ -108,18 +108,48 @@ func enterInput(history *[]string, historyIndex *int, currentInput *[]byte, curr
 			fmt.Print("Unknown command\r\n")
 		}
 
-		if len(*history) == 0 || (*history)[len(*history)-1] != dirtyInput {
-			*history = append(*history, dirtyInput)
+		if len(r.history) == 0 || r.history[len(r.history)-1] != dirtyInput {
+			r.history = append(r.history, dirtyInput)
 		}
 
 		if command == "exit" {
 			return true
 		}
 
-		*currentInput = nil
-		*currentInputIndex = -1
-		*historyIndex = -1
-		fmt.Print(prompt)
+		r.currentInput = nil
+		r.currentInputIndex = -1
+		r.historyIndex = -1
+		fmt.Print(Prompt)
 	}
 	return false
+}
+
+func (r *replState) ctrlU() []byte {
+	deleted := r.currentInput[:r.currentInputIndex+1]
+	r.currentInput = r.currentInput[r.currentInputIndex+1:]
+	r.currentInputIndex = len(r.currentInput) - 1
+	fmt.Print(ClearLine + Prompt + string(r.currentInput))
+	for r.currentInputIndex != -1 {
+		r.leftInput()
+	}
+	return deleted
+}
+
+func (r *replState) ctrlK() []byte {
+	deleted := r.currentInput[r.currentInputIndex+1:]
+	r.currentInput = r.currentInput[:r.currentInputIndex+1]
+	fmt.Print(ClearLine + Prompt + string(r.currentInput))
+	return deleted
+}
+
+func (r *replState) ctrlY() {
+	moveLeftAmount := (len(r.currentInput) - 1) - r.currentInputIndex
+
+	r.currentInput = slices.Insert(r.currentInput, r.currentInputIndex+1, r.yanked...)
+	r.currentInputIndex = len(r.currentInput) - 1
+	fmt.Print(ClearLine + Prompt + string(r.currentInput))
+
+	for range moveLeftAmount {
+		r.leftInput()
+	}
 }

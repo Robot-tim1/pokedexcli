@@ -12,17 +12,26 @@ const (
 	RightArrow = "\x1b[C"
 	LeftArrow  = "\x1b[D"
 	ClearLine  = "\x1b[2K\r"
+	Prompt     = "Pokedex > "
 )
 
+type replState struct {
+	history           []string
+	historyIndex      int
+	currentInput      []byte
+	currentInputIndex int
+	yanked            []byte
+}
+
 func startRepl(cfg *config) {
-	var history []string
-	historyIndex := -1
-	var currentInput []byte
-	currentInputIndex := -1
+	state := replState{
+		historyIndex:      -1,
+		currentInputIndex: -1,
+	}
+
 	buf := make([]byte, 512)
 
-	prompt := "Pokedex > "
-	fmt.Print(prompt)
+	fmt.Print(Prompt)
 	for {
 		n, err := os.Stdin.Read(buf)
 		if err != nil {
@@ -33,34 +42,40 @@ func startRepl(cfg *config) {
 		inputStr := string(buf[:n])
 		switch inputStr {
 		case UpArrow:
-			upInput(history, &historyIndex, &currentInput, &currentInputIndex, prompt)
+			state.upInput()
 		case DownArrow:
-			downInput(history, &historyIndex, &currentInput, &currentInputIndex, prompt)
+			state.downInput()
 		case LeftArrow:
-			leftInput(&currentInputIndex)
+			state.leftInput()
 		case RightArrow:
-			rightInput(&currentInputIndex, currentInput)
+			state.rightInput()
 		case "\f":
-			fmt.Printf("\033[H\033[2J%s", prompt+string(currentInput))
+			fmt.Printf("\033[H\033[2J%s", Prompt+string(state.currentInput))
 		case "\r", "\n":
-			if enterInput(&history, &historyIndex, &currentInput, &currentInputIndex, prompt, cfg) {
+			if state.enterInput(cfg) {
 				return
 			}
 		case "\x7f", "\x08":
-			backInput(&currentInput, &currentInputIndex, prompt)
+			state.backInput()
 		case "\x01":
-			for currentInputIndex != -1 {
-				leftInput(&currentInputIndex)
+			for state.currentInputIndex != -1 {
+				state.leftInput()
 			}
 		case "\x03":
 			fmt.Print("^C\r\n")
 			return
 		case "\x05":
-			for currentInputIndex < len(currentInput)-1 {
-				rightInput(&currentInputIndex, currentInput)
+			for state.currentInputIndex < len(state.currentInput)-1 {
+				state.rightInput()
 			}
+		case "\x15":
+			state.yanked = state.ctrlU()
+		case "\x0B":
+			state.yanked = state.ctrlK()
+		case "\x19":
+			state.ctrlY()
 		default:
-			keyInput(n, buf, &currentInput, &currentInputIndex, prompt)
+			state.keyInput(n, buf)
 		}
 	}
 }
